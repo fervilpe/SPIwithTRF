@@ -128,8 +128,8 @@ int main(void)
 
 
     MAP_SPIEnable(dirBaseSpi);
-    //EN a 0 -> GPIOA1_BASE, 0x8 WritePin -> gpio11 ENable del TRF
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x8, 1);
+    //EN a 0 -> GPIOA1_BASE, 0x4 WritePin -> gpio11 ENable del TRF
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 1);
 
 
     //Envio primer caracter para iniciar bucle Trans/Recepción
