@@ -111,23 +111,30 @@ int main(void)
     MAP_UARTConfigSetExpClk(dirBaseUart,MAP_PRCMPeripheralClockGet(PRCM_UARTA0),
                            115200, (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                            UART_CONFIG_PAR_NONE));
+    //
+    //
+    //Activacion SPI
+    //
+    //
+    MAP_PRCMPeripheralClkEnable(PRCM_GSPI,PRCM_RUN_MODE_CLK);
+    MAP_PRCMPeripheralReset(PRCM_GSPI);
+    MAP_SPIReset(GSPI_BASE);
 
-    //MAP_SPIIntRegister(dirBaseSpi,RT_Spi);
-    //MAP_SPIIntEnable(dirBaseSpi,SPI_INT_TX_EMPTY|SPI_INT_RX_FULL );
+    MAP_SPIConfigSetExpClk(GSPI_BASE,MAP_PRCMPeripheralClockGet(PRCM_GSPI),
+             2000000,SPI_MODE_MASTER,SPI_SUB_MODE_1,
+                (SPI_SW_CTRL_CS |
+                  SPI_3PIN_MODE |
+                  SPI_TURBO_OFF |
+               SPI_CS_ACTIVELOW |
+                       SPI_WL_8));
 
-    //MAP_SPIFIFOLevelSet(dirBaseSpi,1,1); //Se indica que la FIFO de envio y recepción tienen tam 1
-    //MAP_SPIFIFOEnable(dirBaseSpi,SPI_TX_FIFO|SPI_RX_FIFO);
+    MAP_SPIEnable(GSPI_BASE);
+    //
+    //
+    //Fin activacion SPI
+    //
+    //
 
-    MAP_SPIConfigSetExpClk(dirBaseSpi,MAP_PRCMPeripheralClockGet(PRCM_GSPI),
-                           100000,SPI_MODE_MASTER,SPI_SUB_MODE_1,
-                         (SPI_SW_CTRL_CS |
-                         SPI_3PIN_MODE |
-                         SPI_TURBO_OFF |
-                         //SPI_CS_ACTIVELOW |
-                         SPI_WL_8));
-
-
-    MAP_SPIEnable(dirBaseSpi);
     //EN a 0 -> GPIOA1_BASE, 0x4 WritePin -> gpio11 ENable del TRF
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 1);
 
@@ -135,10 +142,10 @@ int main(void)
     //Envio primer caracter para iniciar bucle Trans/Recepción
     MAP_UARTCharPut(dirBaseUart,'1');
     //spiCS a 0 -> GPIOA1_BASE, 0x4 WritePin
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0);
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x0);
     MAP_SPIDataPut(dirBaseSpi,'A');
     //spiCS a 1 -> GPIOA1_BASE, 0x4 WritePin - Desactiva comunicacion
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 1);
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
 
     MAP_UARTCharPut(dirBaseUart,'2');
     MAP_SPIDataGet(dirBaseSpi,&dato);

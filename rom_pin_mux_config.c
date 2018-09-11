@@ -83,19 +83,19 @@ void PinMuxConfig(void)
     MAP_PRCMPeripheralClkEnable(PRCM_UARTA0, PRCM_RUN_MODE_CLK); //sE ACTIVA LA UARTA0
 
     //
-    // Configure PIN_62 for GPIO Input-cuando esclavo pero para master -> Output
+    // Configure PIN_62 for GPIO IRQ Input
     //
     MAP_PinTypeGPIO(PIN_62, PIN_MODE_0, false);
     MAP_GPIODirModeSet(GPIOA0_BASE, 0x80, GPIO_DIR_MODE_IN);
 
     //
-    // Configure PIN_01 for GPIO Output
+    // Configure PIN_01 for GPIO Output (Salve Select)
     //
     MAP_PinTypeGPIO(PIN_01, PIN_MODE_0, false);
     MAP_GPIODirModeSet(GPIOA1_BASE, 0x4, GPIO_DIR_MODE_OUT);
 
     //
-    // Configure PIN_02 for GPIO Output
+    // Configure PIN_02 for TRF enable Output (GPIO11, LED D5)
     //
     MAP_PinTypeGPIO(PIN_02, PIN_MODE_0, false);
     MAP_GPIODirModeSet(GPIOA1_BASE, 0x8, GPIO_DIR_MODE_OUT);
@@ -103,8 +103,8 @@ void PinMuxConfig(void)
     //
     // Configure PIN_08 for GPIO Input
     //
-    MAP_PinTypeGPIO(PIN_08, PIN_MODE_0, false);
-    MAP_GPIODirModeSet(GPIOA2_BASE, 0x2, GPIO_DIR_MODE_IN);
+    //MAP_PinTypeGPIO(PIN_08, PIN_MODE_0, false);
+    //MAP_GPIODirModeSet(GPIOA2_BASE, 0x2, GPIO_DIR_MODE_IN);
 
     //
     // Configure PIN_05 for SPI0 GSPI_CLK
