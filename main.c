@@ -49,9 +49,7 @@ void RT_Spi(){
 
     MAP_SPIIntClear(dirBaseSpi,tipoInt);
 
-    if(tipoInt & SPI_INT_TX_EMPTY){
-        MAP_SPIDataPutNonBlocking(dirBaseSpi,'1');
-    }
+    MAP_SPIDataPutNonBlocking(dirBaseSpi,'1');
 
     if (tipoInt & SPI_INT_RX_FULL ){
         MAP_UARTCharPutNonBlocking(dirBaseUart,str[car]);
@@ -99,6 +97,7 @@ int main(void)
 {
     unsigned long dato;
     unsigned char nibble;
+    unsigned char comando;
 
     /*Inicializacion y configuracion Board.*/
     BoardInit();
@@ -135,14 +134,33 @@ int main(void)
     //
     //
 
+
+    //Activacion interrupciones para la recepción de datos del TRF
+    IntRegister(SPI_INT_RX_FULL, RT_Spi);
+    IntPrioritySet(SPI_INT_RX_FULL, INT_PRIORITY_LVL_1);
+
+    //Activacion Interrupciones para seleccionar TRF
+    GPIOIntTypeSet(GPIOA0_BASE, GPIO_PIN_7, GPIO_RISING_EDGE);
+    GPIOIntClear(GPIOA0_BASE, true);
+    GPIOIntEnable(GPIOA0_BASE, GPIO_PIN_7);
+
+    SPIIntEnable(GPIOA0_BASE, SPI_INT_RX_FULL);
+
+    //Modo SOFT_INI nfc:
+    comando = 0x03;
+    comando = 0x80 | comando;
+    comando = 0x9f & comando; //Normalizamos los valores para confirmar comando directo
+    MAP_UARTCharPut(dirBaseUart,comando);
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
+    MAP_SPIDataPut(dirBaseSpi, comando);
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
+
+
     //EN a 0 -> GPIOA1_BASE, 0x4 WritePin -> gpio11 ENable del TRF
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 1);
-
-
-    //Envio primer caracter para iniciar bucle Trans/Recepción
+    /*MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 1);//Envio primer caracter para iniciar bucle Trans/Recepción
     MAP_UARTCharPut(dirBaseUart,'1');
     //spiCS a 0 -> GPIOA1_BASE, 0x4 WritePin
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x0);
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
     MAP_SPIDataPut(dirBaseSpi,'A');
     //spiCS a 1 -> GPIOA1_BASE, 0x4 WritePin - Desactiva comunicacion
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
@@ -174,5 +192,5 @@ int main(void)
 
 	while(1){
 	    //MAP_SPIDataPutNonBlocking(dirBaseSpi,'A');
-	}
+	}*/
 }
