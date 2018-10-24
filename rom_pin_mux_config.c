@@ -83,12 +83,6 @@ void PinMuxConfig(void)
     MAP_PRCMPeripheralClkEnable(PRCM_UARTA0, PRCM_RUN_MODE_CLK); //sE ACTIVA LA UARTA0
 
     //
-    // Configure PIN_62 for GPIO IRQ Input
-    //
-    MAP_PinTypeGPIO(PIN_62, PIN_MODE_0, false);
-    MAP_GPIODirModeSet(GPIOA0_BASE, 0x80, GPIO_DIR_MODE_IN);
-
-    //
     // Configure PIN_01 for GPIO Output (Salve Select)
     //
     MAP_PinTypeGPIO(PIN_01, PIN_MODE_0, false);
@@ -100,11 +94,6 @@ void PinMuxConfig(void)
     MAP_PinTypeGPIO(PIN_02, PIN_MODE_0, false);
     MAP_GPIODirModeSet(GPIOA1_BASE, 0x8, GPIO_DIR_MODE_OUT);
 
-    //
-    // Configure PIN_08 for GPIO Input
-    //
-    //MAP_PinTypeGPIO(PIN_08, PIN_MODE_0, false);
-    //MAP_GPIODirModeSet(GPIOA2_BASE, 0x2, GPIO_DIR_MODE_IN);
 
     //
     // Configure PIN_05 for SPI0 GSPI_CLK
@@ -120,6 +109,12 @@ void PinMuxConfig(void)
     // Configure PIN_07 for SPI0 GSPI_MOSI
     //
     MAP_PinTypeSPI(PIN_07, PIN_MODE_7);
+
+    //
+    // Configure PIN_62 for GPIO IRQ Input
+    //
+    MAP_PinTypeGPIO(PIN_62, PIN_MODE_0, false);
+    MAP_GPIODirModeSet(GPIOA0_BASE, 0x80, GPIO_DIR_MODE_IN);
 
     //
     // Configure PIN_61 for UART0 UART0_RTS

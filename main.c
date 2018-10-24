@@ -47,7 +47,7 @@ void RT_Spi(){
     //obtenemos el tipo de interrupción.
     unsigned long tipoInt = MAP_SPIIntStatus(dirBaseSpi, false);
 
-    MAP_SPIIntClear(dirBaseSpi,tipoInt);
+    SPIIntClear(dirBaseSpi,tipoInt);
 
     MAP_SPIDataPutNonBlocking(dirBaseSpi,'1');
 
@@ -97,11 +97,19 @@ int main(void)
 {
     unsigned long dato;
     unsigned char nibble;
-    unsigned char comando;
+    unsigned char comando, ucGPIOPin;
+    unsigned int uiGPIOPort;
+    unsigned char ucDummy;
+
 
     /*Inicializacion y configuracion Board.*/
     BoardInit();
+
     PinMuxConfig();
+
+    ucGPIOPin = 1 << (10 % 8);
+    uiGPIOPort = GPIOA1_BASE;
+    MAP_GPIOPinWrite(uiGPIOPort,ucGPIOPin,0xff);
 
     //Activacion interrupciones UART y SPI
     MAP_UARTIntRegister(dirBaseUart,Tx_UART);
@@ -136,15 +144,16 @@ int main(void)
 
 
     //Activacion interrupciones para la recepción de datos del TRF
-    IntRegister(SPI_INT_RX_FULL, RT_Spi);
-    IntPrioritySet(SPI_INT_RX_FULL, INT_PRIORITY_LVL_1);
+    IntRegister(16, RT_Spi);
+    IntPrioritySet(16, INT_PRIORITY_LVL_1);
 
     //Activacion Interrupciones para seleccionar TRF
     GPIOIntTypeSet(GPIOA0_BASE, GPIO_PIN_7, GPIO_RISING_EDGE);
-    GPIOIntClear(GPIOA0_BASE, true);
+    GPIOIntClear(GPIOA0_BASE, 0xff);
     GPIOIntEnable(GPIOA0_BASE, GPIO_PIN_7);
+    IntEnable(16);
 
-    SPIIntEnable(GPIOA0_BASE, SPI_INT_RX_FULL);
+    //SPIIntEnable(GPIOA0_BASE, SPI_INT_RX_FULL);
 
     //Modo SOFT_INI nfc:
     comando = 0x03;
@@ -152,12 +161,17 @@ int main(void)
     comando = 0x9f & comando; //Normalizamos los valores para confirmar comando directo
     MAP_UARTCharPut(dirBaseUart,comando);
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
-    MAP_SPIDataPut(dirBaseSpi, comando);
+    SPITransfer(GSPI_BASE, comando, &ucDummy, 1, SPI_CS_ENABLE);
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
+
+    comando = 0x00;
+    comando = 0x80 | comando;
+    comando = 0x9f & comando;
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
+    SPITransfer(GSPI_BASE, comando, &ucDummy, 1, SPI_CS_ENABLE);
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
 
 
-    //EN a 0 -> GPIOA1_BASE, 0x4 WritePin -> gpio11 ENable del TRF
-    /*MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 1);//Envio primer caracter para iniciar bucle Trans/Recepción
     MAP_UARTCharPut(dirBaseUart,'1');
     //spiCS a 0 -> GPIOA1_BASE, 0x4 WritePin
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
@@ -165,8 +179,12 @@ int main(void)
     //spiCS a 1 -> GPIOA1_BASE, 0x4 WritePin - Desactiva comunicacion
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
 
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
     MAP_UARTCharPut(dirBaseUart,'2');
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
     MAP_SPIDataGet(dirBaseSpi,&dato);
+    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
 
     MAP_UARTCharPut(dirBaseUart,'<');
     MAP_UARTCharPut(dirBaseUart,'0');
@@ -192,5 +210,5 @@ int main(void)
 
 	while(1){
 	    //MAP_SPIDataPutNonBlocking(dirBaseSpi,'A');
-	}*/
+	}
 }
