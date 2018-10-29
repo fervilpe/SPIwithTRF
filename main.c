@@ -95,7 +95,7 @@ static void BoardInit(void){
  */
 int main(void)
 {
-    unsigned long dato;
+    unsigned char dato;
     unsigned char nibble;
     unsigned char comando, ucGPIOPin;
     unsigned int uiGPIOPort;
@@ -147,11 +147,11 @@ int main(void)
     IntRegister(16, RT_Spi);
     IntPrioritySet(16, INT_PRIORITY_LVL_1);
 
-    //Activacion Interrupciones para seleccionar TRF
+    //Activacion Interrupciones provenientes del TRF activos en flanco de subida
     GPIOIntTypeSet(GPIOA0_BASE, GPIO_PIN_7, GPIO_RISING_EDGE);
     GPIOIntClear(GPIOA0_BASE, 0xff);
     GPIOIntEnable(GPIOA0_BASE, GPIO_PIN_7);
-    IntEnable(16);
+    IntEnable(16); //Interrupciones de la direccion BASE A0
 
     //SPIIntEnable(GPIOA0_BASE, SPI_INT_RX_FULL);
 
@@ -159,7 +159,7 @@ int main(void)
     comando = 0x03;
     comando = 0x80 | comando;
     comando = 0x9f & comando; //Normalizamos los valores para confirmar comando directo
-    MAP_UARTCharPut(dirBaseUart,comando);
+
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
     SPITransfer(GSPI_BASE, comando, &ucDummy, 1, SPI_CS_ENABLE);
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
@@ -171,44 +171,19 @@ int main(void)
     SPITransfer(GSPI_BASE, comando, &ucDummy, 1, SPI_CS_ENABLE);
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
 
-
-    MAP_UARTCharPut(dirBaseUart,'1');
+    //Valor de direccion a leer:
+    ucDummy = 0x04;
+    ucDummy = 0x60 | ucDummy;
     //spiCS a 0 -> GPIOA1_BASE, 0x4 WritePin
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
-    MAP_SPIDataPut(dirBaseSpi,'A');
-    //spiCS a 1 -> GPIOA1_BASE, 0x4 WritePin - Desactiva comunicacion
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
-
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
-    MAP_UARTCharPut(dirBaseUart,'2');
+    //SPITransfer(GSPI_BASE, ucDummy, &dato, 1, SPI_CS_ENABLE);
+    MAP_SPIDataPut(GSPI_BASE,ucDummy);
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
-    MAP_SPIDataGet(dirBaseSpi,&dato);
+        //SPITransfer(GSPI_BASE, ucDummy, &dato, 1, SPI_CS_ENABLE);
+    MAP_SPIDataGet(GSPI_BASE,&ucDummy);
     MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
 
-    MAP_UARTCharPut(dirBaseUart,'<');
-    MAP_UARTCharPut(dirBaseUart,'0');
-    MAP_UARTCharPut(dirBaseUart,'x');
 
-    nibble = (dato & 0x00F0) >> 4;
-    if (nibble <= 9) {
-        nibble += '0';
-    } else {
-        nibble += 'A';
-    }
-    MAP_UARTCharPut(dirBaseUart,nibble);
 
-    nibble = dato & 0x000F;
-    if (nibble <= 9) {
-        nibble += '0';
-    } else {
-        nibble += 'A';
-    }
-    MAP_UARTCharPut(dirBaseUart,nibble);
-
-    MAP_UARTCharPut(dirBaseUart,'>');
-
-	while(1){
-	    //MAP_SPIDataPutNonBlocking(dirBaseSpi,'A');
-	}
 }
