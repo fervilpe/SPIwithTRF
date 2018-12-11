@@ -113,8 +113,15 @@ void PinMuxConfig(void)
     //
     // Configure PIN_62 for GPIO IRQ Input
     //
-    MAP_PinTypeGPIO(PIN_62, PIN_MODE_0, false);
-    MAP_GPIODirModeSet(GPIOA0_BASE, 0x80, GPIO_DIR_MODE_IN);
+    //MAP_PinTypeGPIO(PIN_62, PIN_MODE_0, false);
+    //MAP_GPIODirModeSet(GPIOA0_BASE, 0x80, GPIO_DIR_MODE_IN);
+    //
+    //Cambio de PIN por actualizacion de TRF
+    //Actual IRQ Input PIN_08
+    //
+    MAP_PinTypeGPIO(PIN_08, PIN_MODE_0, false);
+    MAP_GPIODirModeSet(GPIOA2_BASE, 0x2, GPIO_DIR_MODE_IN);
+
 
     //
     // Configure PIN_61 for UART0 UART0_RTS

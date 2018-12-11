@@ -52,7 +52,7 @@ void RT_Spi(){
     MAP_SPIDataPutNonBlocking(dirBaseSpi,'1');
 
     if (tipoInt & SPI_INT_RX_FULL ){
-        MAP_UARTCharPutNonBlocking(dirBaseUart,str[car]);
+        MAP_UARTCharGetNonBlocking(dirBaseUart,str[car]);
     }
 }
 
@@ -143,15 +143,15 @@ int main(void)
     //
 
 
-    //Activacion interrupciones para la recepción de datos del TRF
-    IntRegister(16, RT_Spi);
-    IntPrioritySet(16, INT_PRIORITY_LVL_1);
+    //Registro de funcion a realizar para las interrupciones de recepción de datos del TRF en INT_GPIOA0 (no usado)
+    //IntRegister(16, RT_Spi);
+    //IntPrioritySet(16, INT_PRIORITY_LVL_1);
 
     //Activacion Interrupciones provenientes del TRF activos en flanco de subida
-    GPIOIntTypeSet(GPIOA0_BASE, GPIO_PIN_7, GPIO_RISING_EDGE);
-    GPIOIntClear(GPIOA0_BASE, 0xff);
-    GPIOIntEnable(GPIOA0_BASE, GPIO_PIN_7);
-    IntEnable(16); //Interrupciones de la direccion BASE A0
+    GPIOIntTypeSet(GPIOA2_BASE, 0x2, GPIO_RISING_EDGE);
+    GPIOIntClear(GPIOA2_BASE, 0x2);
+    GPIOIntEnable(GPIOA2_BASE, 0x2);
+    IntEnable(INT_GPIOA2); //Interrupciones de la direccion BASE A2
 
     //SPIIntEnable(GPIOA0_BASE, SPI_INT_RX_FULL);
 
@@ -160,30 +160,40 @@ int main(void)
     comando = 0x80 | comando;
     comando = 0x9f & comando; //Normalizamos los valores para confirmar comando directo
 
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
+    MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0x00);
     SPITransfer(GSPI_BASE, comando, &ucDummy, 1, SPI_CS_ENABLE);
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
+    MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0xff);
 
+    //Envio dummy para reset de TRF
     comando = 0x00;
     comando = 0x80 | comando;
     comando = 0x9f & comando;
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
+    MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0x00);
     SPITransfer(GSPI_BASE, comando, &ucDummy, 1, SPI_CS_ENABLE);
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
+    MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0xff);
 
-    //Valor de direccion a leer:
+    //Valor direccion a leer:
     ucDummy = 0x04;
+    /****************/
     ucDummy = 0x60 | ucDummy;
-    //spiCS a 0 -> GPIOA1_BASE, 0x4 WritePin
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
-    //SPITransfer(GSPI_BASE, ucDummy, &dato, 1, SPI_CS_ENABLE);
-    MAP_SPIDataPut(GSPI_BASE,ucDummy);
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0x00);
-        //SPITransfer(GSPI_BASE, ucDummy, &dato, 1, SPI_CS_ENABLE);
-    MAP_SPIDataGet(GSPI_BASE,&ucDummy);
-    MAP_GPIOPinWrite(GPIOA1_BASE, 0x4, 0xff);
+
+    //spiCS a 0 -> GPIOA1_BASE, 0x4 WritePin  -   Cambiado por actualizacion de TRF a 4.5
+    MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0x00);
+    MAP_SPIDataPut(GSPI_BASE,ucDummy);  ///////////////Envio
+    //MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0xff);
+
+    //MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0x00);
+    MAP_SPIDataGet(GSPI_BASE,&ucDummy);  /////////////////Recepcion
+    MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0xff);
+
+    MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0x00);
+    MAP_SPIDataPut(GSPI_BASE,ucDummy); ////////////////Envio
+   // MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0xff);
+
+    //MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0x00);
+    MAP_SPIDataGet(GSPI_BASE,&ucDummy);  //////////////Recepcion
+    MAP_GPIOPinWrite(GPIOA2_BASE, 0x2, 0xff);
 
 
-
+    while(1){}
 }
